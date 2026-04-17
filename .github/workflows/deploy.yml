@@ -52,7 +52,7 @@ jobs:
             --instance-ids "i-07390664ac87479d6" \
             --document-name "AWS-RunShellScript" \
             --parameters commands="[
-              'cd cloud-backend'
+              'cd cloud-backend',
               'git pull origin main',
               'docker build -t backend-app .',
               'docker rm -f $(docker ps -aq) || true',
