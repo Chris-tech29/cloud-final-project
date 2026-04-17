@@ -1,0 +1,10 @@
+name: cloud-app
+description: Cloud development week 5 project
+runtime:
+  name: nodejs
+  options:
+    packagemanager: npm
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-typescript
