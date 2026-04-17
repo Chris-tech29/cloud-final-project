@@ -1,0 +1,66 @@
+name: Full Stack Deploy (S3 + EC2)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  frontend-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install + Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy Frontend to S3
+        run: |
+          aws s3 sync frontend/build s3://final-project-cloud-course --delete
+
+  backend-deploy:
+    runs-on: ubuntu-latest
+    needs: frontend-deploy
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy Backend via SSM
+        run: |
+          aws ssm send-command \
+  --instance-ids "i-07390664ac87479d6" \
+  --document-name "AWS-RunShellScript" \
+  --parameters '{"commands": [
+    "cd cloud-backend",
+    "git pull origin main",
+    "docker build -t backend-app .",
+    "docker rm -f $(docker ps -aq) || true",
+    "docker run -d -p 5001:5000 \
+      -e DB_HOST=appdb.catuoqa86grl.us-east-1.rds.amazonaws.com \
+      -e DB_USER=postgres \
+      -e DB_PASSWORD=supernova29 \
+      -e DB_NAME=appdb \
+      -e DB_PORT=5432 \
+      backend-app"
+  ]
