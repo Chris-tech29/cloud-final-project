@@ -49,18 +49,18 @@ jobs:
       - name: Deploy Backend via SSM
         run: |
           aws ssm send-command \
-  --instance-ids "i-07390664ac87479d6" \
-  --document-name "AWS-RunShellScript" \
-  --parameters '{"commands": [
-    "cd cloud-backend",
-    "git pull origin main",
-    "docker build -t backend-app .",
-    "docker rm -f $(docker ps -aq) || true",
-    "docker run -d -p 5001:5000 \
-      -e DB_HOST=appdb.catuoqa86grl.us-east-1.rds.amazonaws.com \
-      -e DB_USER=postgres \
-      -e DB_PASSWORD=supernova29 \
-      -e DB_NAME=appdb \
-      -e DB_PORT=5432 \
-      backend-app"
-  ]
+            --instance-ids "i-07390664ac87479d6" \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="[
+              'cd cloud-backend'
+              'git pull origin main',
+              'docker build -t backend-app .',
+              'docker rm -f $(docker ps -aq) || true',
+              'docker run -d -p 5001:5000 \
+                -e DB_HOST=appdb.catuoqa86grl.us-east-1.rds.amazonaws.com \
+                -e DB_USER=postgres \
+                -e DB_PASSWORD=supernova29 \
+                -e DB_NAME=appdb \
+                -e DB_PORT=5432 \
+                backend-app'
+            ]"
